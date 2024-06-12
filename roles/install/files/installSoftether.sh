@@ -12,7 +12,12 @@ log() {
 SOFTETHER_VERSION="4.43" 
 SOFTETHER_BUILD="9799" 
 SOFTETHER_DOWNLOAD_URL="https://www.softether-download.com/files/softether/v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-beta-2023.08.31-tree/Linux/SoftEther_VPN_Server/64bit_-_Intel_x64_or_AMD64/softether-vpnserver-v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-linux-x64-64bit.tar.gz" 
- 
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+plain='\033[0m'
+
+
 # Check if script is run as root 
 if [ "$EUID" -ne 0 ]; then 
     log "Please run this script as root." 
@@ -60,11 +65,15 @@ backup_existing_installation() {
         sudo systemctl disable softether-vpnserver
     fi
  }
+
 # Install necessary tools and dependencies 
 install_dependencies() { 
     log "Installing necessary tools and dependencies." 
     apt-get update -y 
+    sudo apt-get update -y && sudo apt-get -o Dpkg::Options::="--force-confold" -y full-upgrade -y && sudo apt-get autoremove -y 
     apt-get install -y wget tar make gcc 
+    sudo apt-get install -y certbot && sudo apt-get install -y ncat && sudo apt-get install -y net-tools
+    sudo apt install -y gcc binutils gzip libreadline-dev libssl-dev libncurses5-dev libncursesw5-dev libpthread-stubs0-dev || exit
     # Additional dependencies can be added here 
 } 
  
@@ -117,6 +126,28 @@ enable_and_start_service() {
     systemctl start softether-vpnserver 
 } 
  
+
+# Add need-restart back again
+sudo sed -i "s/#\$nrconf{restart} = 'a';/\$nrconf{restart} = 'i';/" /etc/needrestart/needrestart.conf
+
+#Adding shortcut for Softether setting
+alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
+echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
+
+
+# Restore backup
+ restore_backup() {
+
+    if [ -d "/opt/softether_backup" ]; then
+    clear
+    echo -e "${green}Restoring backup.${plain}.\n"
+    sudo systemctl stop softether-vpnserver
+    sudo cp -f /opt/softether_backup/vpn_server.config.bak /opt/softether/vpn_server.config
+    sudo cp -rf /opt/softether_backup/backup.vpn_server.config /opt/softether/
+    sudo systemctl restart softether-vpnserver
+    fi
+ }
+
 # Main script logic 
 main() { 
     backup_existing_installation 
@@ -125,6 +156,7 @@ main() {
     download_and_install_softether 
     create_service_file 
     enable_and_start_service 
+    restore_backup
     log "SoftEther VPN server installation and configuration completed successfully." 
 } 
  
