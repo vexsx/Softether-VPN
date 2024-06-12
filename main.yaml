@@ -1,10 +1,10 @@
 ---
 - name: Install Softether Vpn Server
-  hosts: 
-  remote_user: 
+  hosts: servers
+  remote_user: root
   serial: 1
-  become: yes
-  become_method: sudo
+  # become: yes
+  # become_method: sudo
 
   roles:
     - 

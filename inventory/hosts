@@ -1,0 +1,3 @@
+[servers]
+localhost        ansible_connection=local
+server1          ansible_connection=ssh     ansible_hostname: 167.99.138.192       ansible_port: 22
