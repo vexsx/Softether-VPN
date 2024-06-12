@@ -74,7 +74,7 @@ install_dependencies() {
     apt-get install -y wget tar make gcc 
     sudo apt-get install -y certbot && sudo apt-get install -y ncat && sudo apt-get install -y net-tools
     sudo apt install -y gcc binutils gzip libreadline-dev libssl-dev libncurses5-dev libncursesw5-dev libpthread-stubs0-dev || exit
-    # Additional dependencies can be added here 
+
 } 
  
 # Download and install SoftEther 
@@ -105,13 +105,14 @@ create_service_file() {
     cat <<EOF > /etc/systemd/system/softether-vpnserver.service 
 [Unit] 
 Description=SoftEther VPN Server 
-After=network.target 
+After=network-online.target
+After=dbus.service
  
 [Service] 
 Type=forking 
 ExecStart=/opt/vpnserver/vpnserver start 
-ExecStop=/opt/vpnserver/vpnserver stop 
-ExecReload=/opt/vpnserver/vpnserver restart 
+ExecReload=/bin/kill -HUP \$MAINPID
+
  
 [Install] 
 WantedBy=multi-user.target 
@@ -122,18 +123,12 @@ EOF
 enable_and_start_service() { 
     log "Enabling and starting SoftEther VPN service." 
     systemctl daemon-reload 
-    systemctl enable softether-vpnserver 
-    systemctl start softether-vpnserver 
+    systemctl enable softether-vpnserver.service
+    systemctl start softether-vpnserver.service
+    # enable IPv4 forwadring 
+    echo 1 > /proc/sys/net/ipv4/ip_forward || exit
+    sleep 2
 } 
- 
-
-# Add need-restart back again
-sudo sed -i "s/#\$nrconf{restart} = 'a';/\$nrconf{restart} = 'i';/" /etc/needrestart/needrestart.conf
-
-#Adding shortcut for Softether setting
-alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
-echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
-
 
 # Restore backup
  restore_backup() {
@@ -148,6 +143,38 @@ echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
     fi
  }
 
+# Add need-restart back again
+sudo sed -i "s/#\$nrconf{restart} = 'a';/\$nrconf{restart} = 'i';/" /etc/needrestart/needrestart.conf
+
+#Adding shortcut for Softether setting
+alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
+echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
+
+install_BBR() {
+
+    echo -e "${red}BBR is a congestion control system that optimizes the transmission of data packets over a network. ${plain}.\n"
+
+    if [[ y =~ ^[Yy]$ ]]
+        then
+        # installing
+            echo "net.core.default_qdisc=fq" | tee -a /etc/sysctl.conf
+            echo "net.ipv4.tcp_congestion_control=bbr" | tee -a /etc/sysctl.conf
+            # Apply changes
+            sysctl -p
+            clear
+            echo -e "${red} USE 'vpncmd' FOR Softether Setting ${plain}"
+            echo "Have FUN ;)."
+            echo "REBOOT Recommended."
+        else
+        # Exit the script
+        clear
+        echo -e "${red} USE 'vpncmd' FOR Softether Setting ${plain}"
+        echo "Have FUN ;)."
+        echo "REBOOT Recommended."
+        exit 0
+    fi
+}
+
 # Main script logic 
 main() { 
     backup_existing_installation 
@@ -157,8 +184,13 @@ main() {
     create_service_file 
     enable_and_start_service 
     restore_backup
+    install_BBR
     log "SoftEther VPN server installation and configuration completed successfully." 
 } 
  
 # Run the main script 
 main 
+
+echo -e "${red} USE 'vpncmd' FOR Softether Setting ${plain}"
+echo "Have FUN ;)."
+echo "REBOOT Recommended."
