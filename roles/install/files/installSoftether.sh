@@ -103,19 +103,18 @@ download_and_install_softether() {
 create_service_file() { 
     log "Creating the service file." 
     cat <<EOF > /etc/systemd/system/softether-vpnserver.service 
-[Unit] 
-Description=SoftEther VPN Server 
+[Unit]
+Description=SoftEther VPN server
 After=network-online.target
 After=dbus.service
- 
-[Service] 
-Type=forking 
-ExecStart=/opt/vpnserver/vpnserver start 
+
+[Service]
+Type=forking
+ExecStart=/opt/softether/vpnserver start
 ExecReload=/bin/kill -HUP \$MAINPID
 
- 
-[Install] 
-WantedBy=multi-user.target 
+[Install]
+WantedBy=multi-user.target
 EOF 
 } 
  
