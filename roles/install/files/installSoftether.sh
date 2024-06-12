@@ -84,7 +84,7 @@ download_and_install_softether() {
     tar xvf /tmp/softether-vpnserver-v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-linux-x64-64bit.tar.gz -C /tmp 
     cd /tmp/vpnserver 
     make 
-    make install -y || exit
+    make install  || exit
     sleep 5
     make || exit
     sleep 2
@@ -127,6 +127,8 @@ enable_and_start_service() {
     systemctl start softether-vpnserver.service
     # enable IPv4 forwadring 
     echo 1 > /proc/sys/net/ipv4/ip_forward || exit
+    sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf 
+    sysctl -p 
     sleep 2
 } 
 
@@ -154,7 +156,7 @@ install_BBR() {
 
     echo -e "${red}BBR is a congestion control system that optimizes the transmission of data packets over a network. ${plain}.\n"
 
-    if [[ y =~ ^[Yy]$ ]]
+    if [[ 1 = 1 ]]
         then
         # installing
             echo "net.core.default_qdisc=fq" | tee -a /etc/sysctl.conf
