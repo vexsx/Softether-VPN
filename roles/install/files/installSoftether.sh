@@ -192,6 +192,3 @@ main() {
 # Run the main script 
 main 
 
-echo -e "${red} USE 'vpncmd' FOR Softether Setting ${plain}"
-echo "Have FUN ;)."
-echo "REBOOT Recommended."
