@@ -6,12 +6,5 @@
     dest: /tmp/
     mode: 0777
 
-- name: "Set permissions"
-  file:
-    path: /tmp/installSoftether.sh
-    owner: nobody
-    mode: 0777
-
-
 - name: "run"
   command: bash /tmp/installSoftether.sh

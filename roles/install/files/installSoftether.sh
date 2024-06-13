@@ -92,7 +92,6 @@ download_and_install_softether() {
     sleep 5
     sudo /opt/softether/vpnserver stop || exit
     sleep 5
-    sudo alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
 } 
  
 # Create service file 
@@ -144,7 +143,7 @@ enable_and_start_service() {
 sudo sed -i "s/#\$nrconf{restart} = 'a';/\$nrconf{restart} = 'i';/" /etc/needrestart/needrestart.conf
 
 #Adding shortcut for Softether setting
-alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
+# alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
 echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
 
 install_BBR() {
