@@ -92,6 +92,7 @@ download_and_install_softether() {
     sleep 5
     sudo /opt/softether/vpnserver stop || exit
     sleep 5
+    sudo alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'
 } 
  
 # Create service file 
