@@ -79,11 +79,8 @@ install_dependencies() {
 download_and_install_softether() { 
     log "Downloading and installing SoftEther VPN Server." 
     wget "$SOFTETHER_DOWNLOAD_URL" -P /tmp 
-    tar xvf /tmp/softether-vpnserver-v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-linux-x64-64bit.tar.gz -C /tmp 
+    tar xvf /tmp/softether-vpnserver-v4.42-9798-rtm-2023.06.30-linux-x64-64bit.tar.gz -C /tmp 
     cd /tmp/vpnserver 
-    make 
-    make install  || exit
-    sleep 5
     make || exit
     sleep 2
     cd .. || exit

@@ -79,7 +79,7 @@ sleep 2
 cd .. || exit
 sleep 2
 sudo mkdir /opt/softether
-sudo mv vpnserver /opt/softether || exit
+sudo mv /tmp/vpnserver/\* /opt/softether/ || exit
 sleep 2
 sudo /opt/softether/vpnserver start || exit
 sleep 5
