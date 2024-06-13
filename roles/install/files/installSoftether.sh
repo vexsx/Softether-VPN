@@ -9,9 +9,7 @@ log() {
 } 
  
 # Constants 
-SOFTETHER_VERSION="4.43" 
-SOFTETHER_BUILD="9799" 
-SOFTETHER_DOWNLOAD_URL="https://www.softether-download.com/files/softether/v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-beta-2023.08.31-tree/Linux/SoftEther_VPN_Server/64bit_-_Intel_x64_or_AMD64/softether-vpnserver-v${SOFTETHER_VERSION}-${SOFTETHER_BUILD}-linux-x64-64bit.tar.gz" 
+SOFTETHER_DOWNLOAD_URL="https://www.softether-download.com/files/softether/v4.42-9798-rtm-2023.06.30-tree/Linux/SoftEther_VPN_Server/64bit_-_Intel_x64_or_AMD64/softether-vpnserver-v4.42-9798-rtm-2023.06.30-linux-x64-64bit.tar.gz" 
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
