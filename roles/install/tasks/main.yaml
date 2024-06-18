@@ -139,3 +139,15 @@
       net.core.default_qdisc=fq
       net.ipv4.tcp_congestion_control=bbr
   notify: Reload sysctl.conf
+
+- name: Add alias to .bashrc
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    line: "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'"
+    insertafter: EOF
+
+- name: Add alias to .bashrc
+  ansible.builtin.command: echo "alias vpncmd='sudo /opt/softether/vpncmd 127.0.0.1:5555'" >> ~/.bashrc
+  args:
+    warn: false
+  notify: Source .bashrc
