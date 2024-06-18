@@ -1,10 +1,134 @@
 ---
+- name: Ensure script is run as root
+  assert:
+    that: ansible_user_id == "root"
+    fail_msg: "Please run this playbook as root."
 
-- name: " Copy script"
+- name: Remove needrestart for less interruption
+  replace:
+    path: /etc/needrestart/needrestart.conf
+    regexp: '^#\$nrconf{restart} = \'i\';'
+    replace: '$nrconf{restart} = \'a\';'
+
+- name: Backup existing SoftEther installation if present
+  block:
+    - name: Check if SoftEther is installed
+      stat:
+        path: /opt/vpnserver
+      register: vpnserver_path
+
+    - name: Stop SoftEther service
+      service:
+        name: softether-vpnserver.service
+        state: stopped
+      when: vpnserver_path.stat.exists
+
+    - name: Create backup directory
+      file:
+        path: /opt/softether_backup
+        state: directory
+
+    - name: Backup vpn_server.config
+      copy:
+        src: /opt/vpnserver/vpn_server.config
+        dest: /opt/softether_backup/vpn_server.config.bak
+        remote_src: yes
+      when: vpnserver_path.stat.exists
+
+    - name: Backup backup.vpn_server.config
+      copy:
+        src: /opt/vpnserver/backup.vpn_server.config
+        dest: /opt/softether_backup/backup.vpn_server.config
+        remote_src: yes
+      when: vpnserver_path.stat.exists
+
+    - name: Remove existing SoftEther installation
+      file:
+        path: /opt/vpnserver
+        state: absent
+      when: vpnserver_path.stat.exists
+
+    - name: Disable SoftEther service
+      service:
+        name: softether-vpnserver.service
+        enabled: no
+      when: vpnserver_path.stat.exists
+
+- name: Install dependencies
+  apt:
+    name:
+      - wget
+      - tar
+      - make
+      - gcc
+      - certbot
+      - ncat
+      - net-tools
+      - gcc
+      - binutils
+      - gzip
+      - libreadline-dev
+      - libssl-dev
+      - libncurses5-dev
+      - libncursesw5-dev
+      - libpthread-stubs0-dev
+    state: present
+    update_cache: yes
+
+- name: Download SoftEther
+  get_url:
+    url: "https://www.softether-download.com/files/softether/v4.42-9798-rtm-2023.06.30-tree/Linux/SoftEther_VPN_Server/64bit_-_Intel_x64_or_AMD64/softether-vpnserver-v4.42-9798-rtm-2023.06.30-linux-x64-64bit.tar.gz"
+    dest: /tmp/softether-vpnserver.tar.gz
+
+- name: Extract SoftEther
+  unarchive:
+    src: /tmp/softether-vpnserver.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- name: Compile SoftEther
+  command: make
+  args:
+    chdir: /tmp/vpnserver
+
+- name: Move SoftEther to /opt
+  command: mv /tmp/vpnserver /opt/softether
+
+- name: Start and stop SoftEther
+  command: /opt/softether/vpnserver {{ item }}
+  with_items:
+    - start
+    - stop
+
+- name: Create SoftEther service file
   copy:
-    src: "installSoftether.sh"
-    dest: /tmp/
-    mode: 0777
+    dest: /etc/systemd/system/softether-vpnserver.service
+    content: |
+      [Unit]
+      Description=SoftEther VPN server
+      After=network-online.target
+      After=dbus.service
 
-- name: "run"
-  command: bash /tmp/installSoftether.sh
+      [Service]
+      Type=forking
+      ExecStart=/opt/softether/vpnserver start
+      ExecReload=/bin/kill -HUP $MAINPID
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start SoftEther service
+  systemd:
+    name: softether-vpnserver.service
+    enabled: yes
+    state: started
+
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+
+- name: Modify sysctl.conf for IPv4 forwarding
+  lineinfile:
+    path: /etc/sysctl.conf
