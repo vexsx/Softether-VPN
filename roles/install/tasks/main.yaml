@@ -1,8 +1,4 @@
 ---
-- name: Ensure script is run as root
-  assert:
-    that: ansible_user_id == "root"
-    fail_msg: "Please run this playbook as root."
 
 - name: Remove needrestart for less interruption
   replace:
